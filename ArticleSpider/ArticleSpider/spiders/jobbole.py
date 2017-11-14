@@ -4,6 +4,8 @@ import re
 from scrapy .http import Request
 from urllib import parse
 
+from ArticleSpider.items import JobBoleArticleItem
+from ArticleSpider.utils.common import get_md5
 
 class JobboleSpider(scrapy.Spider):
     name = 'jobbole'
@@ -20,9 +22,11 @@ class JobboleSpider(scrapy.Spider):
         """
 
         # 1. 获取文章列表页中文章的url，并交给scrapy下载后解析
-        post_urls = response.css("#archive div.floated-thumb .post-thumb a::attr(href)").extract()
-        for post_url in post_urls:
-            yield Request(url=parse.urljoin(response.url, post_url), callback=self.parse_detail)
+        post_nodes = response.css("#archive div.floated-thumb .post-thumb a")
+        for post_node in post_nodes:
+            img_url = post_node.css("img::attr(src)").extract_first("")
+            post_url = post_node.css("::attr(href)").extract_first("")
+            yield Request(url=parse.urljoin(response.url, post_url),meta={"front-img-url": img_url}, callback=self.parse_detail)
 
         # 2. 获取下一页的url，并交给scrapy下载，下载完成后交给parse
         next_url = response.css(".next.page-numbers::attr(href)").extract_first("")
@@ -35,6 +39,8 @@ class JobboleSpider(scrapy.Spider):
         :param response:
         :return:
         """
+
+        article_item = JobBoleArticleItem()
 
         # based on xpath
         # title = response.xpath('//div[@class="entry-header"]/h1/text()').extract_first("")
@@ -60,6 +66,7 @@ class JobboleSpider(scrapy.Spider):
 
 
         # based on css selector
+        front_img_url = response.meta.get("front-img-url", "")
         title = response.css(".entry-header h1::text").extract_first("")
         create_date = response.css("p.entry-meta-hide-on-mobile::text").extract_first("").strip().replace("·", "").strip()
         praise_nums = response.css(".vote-post-up h10::text").extract_first()
@@ -82,4 +89,17 @@ class JobboleSpider(scrapy.Spider):
         tag_list = [element for element in tag_list if not element.strip().endswith("评论")]
         tags = ",".join(tag_list)
 
-        pass
+        # 填充items
+        article_item["url"] = response.url
+        article_item["url_obj_id"] = get_md5(response.url)
+        article_item["front_img_url"] = [front_img_url]
+        article_item["title"] = title
+        article_item["create_date"] = create_date
+        article_item["praise_nums"] = praise_nums
+        article_item["fav_nums"] = fav_nums
+        article_item["comment_nums"] = comment_nums
+        article_item["content"] = content
+        article_item["tags"] = tags
+        # 传递到 pipelines.py
+        yield article_item
+
