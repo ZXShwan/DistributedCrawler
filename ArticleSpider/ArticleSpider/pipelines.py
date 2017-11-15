@@ -92,8 +92,12 @@ class MysqlTwistedPipeline(object):
 
     def do_insert(self, cursor, item):
         # 执行具体的插入逻辑
-        insert_sql = """insert into jobbole_article(title, url, create_date, fav_nums) VALUES (%s, %s, %s, %s)"""
-        cursor.execute(insert_sql, (item['title'], item['url'], item['create_date'], item['fav_nums']))
+        insert_sql = """insert into jobbole_article(title, create_date, url, url_obj_id, front_img_url, front_img_path,
+                          praise_nums, fav_nums, comment_nums, content, tags)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        cursor.execute(insert_sql, (item['title'], item['create_date'], item['url'], item['url_obj_id'],
+                                    item['front_img_url'], item['front_img_path'], item['praise_nums'], item['fav_nums'],
+                                    item['comment_nums'], item['content'], item['tags']))
 
     def handle_error(self, failure, item, spider):
         # 处理异步插入的异常和错误
@@ -102,8 +106,9 @@ class MysqlTwistedPipeline(object):
 
 class ArticleImagePipeline(ImagesPipeline):
     def item_completed(self, results, item, info):
-        for ok, value in results:
-            front_img_path = value['path']
-        item['front_img_path'] = front_img_path
+        if "front_img_url" in item:
+            for ok, value in results:
+                    front_img_path = value['path']
+            item['front_img_path'] = front_img_path
 
         return item
