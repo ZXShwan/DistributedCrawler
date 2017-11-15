@@ -68,9 +68,10 @@ ROBOTSTXT_OBEY = False
 ITEM_PIPELINES = {
    # 'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
    # 'scrapy.pipelines.images.ImagesPipeline': 1,
-   'ArticleSpider.pipelines.ArticleImagePipeline': 1,
+   # 'ArticleSpider.pipelines.ArticleImagePipeline': 1,
    # 'ArticleSpider.pipelines.JsonWithEncodingPipline': 2,
-   'ArticleSpider.pipelines.JsonExporterPipeline': 2,
+   # 'ArticleSpider.pipelines.JsonExporterPipeline': 2,
+   'ArticleSpider.pipelines.MysqlTwistedPipeline': 1,
 }
 IMAGES_URLS_FIELD = 'front_img_url'
 project_dir = os.path.abspath(os.path.dirname(__file__))
@@ -99,3 +100,8 @@ IMAGES_STORE = os.path.join(project_dir, 'images')
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+MYSQL_HOST = 'localhost'
+MYSQL_DBNAME = 'article_spider'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'root'

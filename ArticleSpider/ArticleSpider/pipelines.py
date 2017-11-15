@@ -7,8 +7,12 @@
 
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy.exporters import JsonItemExporter
+from twisted.enterprise import adbapi
+
 import codecs
 import json
+import MySQLdb
+import MySQLdb.cursors
 
 
 class ArticlespiderPipeline(object):
@@ -44,6 +48,56 @@ class JsonExporterPipeline(object):
     def process_item(self, item, spider):
         self.exporter.export_item(item)
         return item
+
+
+class MysqlPipeline(object):
+    # 普通方式将数据插入MySQL，在爬虫量大时容易阻塞
+
+    def __init__(self):
+        self.connect = MySQLdb.connect('localhost', 'root', 'root', 'article_spider', charset='utf8', use_unicode=True)
+        self.cursor = self.connect.cursor()
+
+    def process_item(self, item, spider):
+        insert_sql = """insert into jobbole_article(title, url, create_date, fav_nums) VALUES (%s, %s, %s, %s)"""
+        self.cursor.execute(insert_sql, (item['title'], item['url'], item['create_date'], item['fav_nums']))
+        self.connect.commit()
+        return item
+
+
+class MysqlTwistedPipeline(object):
+    # 使用twisted实现数据的异步插入
+
+    def __init__(self, dbpool):
+        self.dbpool = dbpool
+
+    @classmethod
+    def from_settings(cls, settings):
+        dbparms = dict(
+            host=settings['MYSQL_HOST'],
+            db=settings['MYSQL_DBNAME'],
+            user=settings['MYSQL_USER'],
+            passwd=settings['MYSQL_PASSWORD'],
+            charset='utf8',
+            cursorclass=MySQLdb.cursors.DictCursor,
+            use_unicode=True,
+        )
+
+        dbpool = adbapi.ConnectionPool('MySQLdb', **dbparms)
+        return cls(dbpool)
+
+    def process_item(self, item, spider):
+        query = self.dbpool.runInteraction(self.do_insert, item)
+        query.addErrback(self.handle_error, item, spider)
+        return item
+
+    def do_insert(self, cursor, item):
+        # 执行具体的插入逻辑
+        insert_sql = """insert into jobbole_article(title, url, create_date, fav_nums) VALUES (%s, %s, %s, %s)"""
+        cursor.execute(insert_sql, (item['title'], item['url'], item['create_date'], item['fav_nums']))
+
+    def handle_error(self, failure, item, spider):
+        # 处理异步插入的异常和错误
+        print(failure)
 
 
 class ArticleImagePipeline(ImagesPipeline):
