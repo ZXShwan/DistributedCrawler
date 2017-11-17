@@ -18,7 +18,7 @@ except:
 
 # 构造 Request headers
 agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
-header = {
+headers = {
     "HOST": "www.zhihu.com",
     "Referer": "https://www.zhihu.com/",
     "User-Agent": agent
@@ -37,7 +37,7 @@ def get_xsrf():
     获取xsrf值
     :return:
     """
-    response = session.get("https://www.zhihu.com", headers=header)
+    response = session.get("https://www.zhihu.com", headers=headers)
     match_re = re.match('.*name="_xsrf" value="(.*?)"', response.text)
     if match_re:
         return (match_re.group(1))
@@ -48,7 +48,7 @@ def get_xsrf():
 def get_captcha():
     t = str(int(time.time() * 1000))
     captcha_url = 'https://www.zhihu.com/captcha.gif?r=' + t + "&type=login"
-    response = session.get(captcha_url, headers=header)
+    response = session.get(captcha_url, headers=headers)
     with open('captcha.jpg', 'wb') as f:
         f.write(response.content)
         f.close()
@@ -63,10 +63,10 @@ def get_captcha():
     return captcha
 
 
-def isLogin():
+def is_login():
     # 通过查看用户个人信息来判断是否已经登录
     url = "https://www.zhihu.com/settings/profile"
-    login_code = session.get(url, headers=header, allow_redirects=False).status_code
+    login_code = session.get(url, headers=headers, allow_redirects=False).status_code
     if login_code == 200:
         return True
     else:
@@ -74,7 +74,7 @@ def isLogin():
 
 
 def get_index():
-    response = session.get("https://www.zhihu.com", headers=header)
+    response = session.get("https://www.zhihu.com", headers=headers)
     with open("index_page.html", "wb") as f:
         f.write(response.text.encode("utf-8"))
         f.close()
@@ -97,23 +97,33 @@ def zhihu_login(account, password):
             "phone_num": account,
             "password": password
         }
-        login_page = session.post(post_url, data=post_data, headers=header)
+    else:
+        if "@" in account:
+            print("log in by email")
+            post_url = "https://www.zhihu.com/login/email"
+            post_data = {
+                "_xsrf": get_xsrf(),
+                "email": account,
+                "password": password
+            }
+    login_page = session.post(post_url, data=post_data, headers=headers)
+    login_code = login_page.json()
+    print(login_code)
+    if login_code['r'] == 1:
+        # 不输入验证码登录失败
+        # 使用需要输入验证码的方式登录
+        post_data["captcha"] = get_captcha()
+        login_page = session.post(post_url, data=post_data, headers=headers)
         login_code = login_page.json()
-        print(login_code)
-        if login_code['r'] == 1:
-            # 不输入验证码登录失败
-            # 使用需要输入验证码的方式登录
-            post_data["captcha"] = get_captcha()
-            login_page = session.post(post_url, data=post_data, headers=header)
-            login_code = login_page.json()
-            print(login_code['msg'])
+        print(login_code['msg'])
+
         session.cookies.save()
 
 
-# get_index()
-
 if __name__ == '__main__':
-    if isLogin():
+    if is_login():
         print("You have already log in!")
     else:
         zhihu_login("17735132578", "Zx19940208")
+    get_index()
+
