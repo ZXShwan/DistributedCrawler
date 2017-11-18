@@ -124,6 +124,6 @@ if __name__ == '__main__':
     if is_login():
         print("You have already log in!")
     else:
-        zhihu_login("17735132578", "Zx19940208")
+        zhihu_login("9292488976", "admin123")
     get_index()
 
