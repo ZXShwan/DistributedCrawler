@@ -50,6 +50,7 @@ class ZhihuSpider(scrapy.Spider):
                 question_id = match_re.group(2)
                 yield scrapy.Request(request_url, meta={"question_id": question_id},
                                      headers=self.headers, callback=self.parse_question)
+                break
             else:
                 # if it's not question page, continue track
                 yield scrapy.Request(url, headers=self.headers, callback=self.parse)
@@ -84,7 +85,7 @@ class ZhihuSpider(scrapy.Spider):
             ans_item["question_id"] = answer["question"]["id"]
             ans_item["author_id"] = answer["author"]["id"] if "id" in answer["author"] else None
             ans_item["content"] = answer["content"] if "content" in answer else None
-            ans_item["parise_num"] = answer["voteup_count"]
+            ans_item["praise_num"] = answer["voteup_count"]
             ans_item["comments_num"] = answer["comment_count"]
             ans_item["create_time"] = answer["created_time"]
             ans_item["update_time"] = answer["updated_time"]

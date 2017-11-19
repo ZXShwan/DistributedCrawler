@@ -92,12 +92,9 @@ class MysqlTwistedPipeline(object):
 
     def do_insert(self, cursor, item):
         # 执行具体的插入逻辑
-        insert_sql = """insert into jobbole_article(title, create_date, url, url_obj_id, front_img_url, front_img_path,
-                          praise_nums, fav_nums, comment_nums, content, tags)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-        cursor.execute(insert_sql, (item['title'], item['create_date'], item['url'], item['url_obj_id'],
-                                    item['front_img_url'], item['front_img_path'], item['praise_nums'], item['fav_nums'],
-                                    item['comment_nums'], item['content'], item['tags']))
+        # 根据不同的item，构建不同的sql语句，插入到mysql中
+        insert_sql, params = item.get_insert_sql()
+        cursor.execute(insert_sql, params)
 
     def handle_error(self, failure, item, spider):
         # 处理异步插入的异常和错误
