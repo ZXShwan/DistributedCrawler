@@ -126,7 +126,7 @@ class ZhihuSpider(scrapy.Spider):
             im = Image.open('captcha.jpg')
             im.show()
         except:
-            print(u'请到 %s 目录找到captcha.jpg 手动输入' % os.path.abspath('captcha.jpg'))
+            print(u'Please go to %s directory and open "captcha.jpg", then input' % os.path.abspath('captcha.jpg'))
         captcha = input("please input the captcha:\n->")
         xsrf = response.meta['xsrf']
         post_url = "https://www.zhihu.com/login/phone_num"

@@ -16,14 +16,14 @@ except:
     print("No Pillow lib installed")
 
 
-# 构造 Request headers
+# build request headers
 agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
 headers = {
     "HOST": "www.zhihu.com",
     "Referer": "https://www.zhihu.com/",
     "User-Agent": agent
 }
-# 使用登录cookie信息
+# use login cookie information
 session = requests.session()
 session.cookies = cookielib.LWPCookieJar(filename="cookies.txt")
 try:
@@ -47,24 +47,24 @@ def get_xsrf():
 
 def get_captcha():
     t = str(int(time.time() * 1000))
-    captcha_url = 'https://www.zhihu.com/captcha.gif?r=' + t + "&type=login"
+    captcha_url = 'https://www.zhihu.com/captcha.gif?r={0}&type=login'.format(t)
     response = session.get(captcha_url, headers=headers)
     with open('captcha.jpg', 'wb') as f:
         f.write(response.content)
         f.close()
-    # 用pillow的Image显示验证码
+    # show captcha
     try:
         im = Image.open('captcha.jpg')
         im.show()
         im.close()
     except:
-        print(u'请到 %s 目录找到captcha.jpg 手动输入' % os.path.abspath('captcha.jpg'))
+        print(u'Please go to %s directory and open "captcha.jpg", then input' % os.path.abspath('captcha.jpg'))
     captcha = input("please input the captcha:\n->")
     return captcha
 
 
 def is_login():
-    # 通过查看用户个人信息来判断是否已经登录
+    # find whether is login
     url = "https://www.zhihu.com/settings/profile"
     login_code = session.get(url, headers=headers, allow_redirects=False).status_code
     if login_code == 200:
@@ -83,7 +83,7 @@ def get_index():
 
 def zhihu_login(account, password):
     """
-    知乎登录
+    Main function to log in zhihu
     :param account:
     :param password:
     :return:
@@ -110,8 +110,7 @@ def zhihu_login(account, password):
     login_code = login_page.json()
     print(login_code)
     if login_code['r'] == 1:
-        # 不输入验证码登录失败
-        # 使用需要输入验证码的方式登录
+        # use captcha to log in
         post_data["captcha"] = get_captcha()
         login_page = session.post(post_url, data=post_data, headers=headers)
         login_code = login_page.json()
