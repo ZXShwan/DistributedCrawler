@@ -21,7 +21,7 @@ class ArticlespiderPipeline(object):
 
 
 class JsonWithEncodingPipline(object):
-    # 自定义json文件的导出
+    # export json file
     def __init__(self):
         self.file = codecs.open('article.json', 'w', encoding='utf-8')
 
@@ -35,7 +35,7 @@ class JsonWithEncodingPipline(object):
 
 
 class JsonExporterPipeline(object):
-    # 调用scrapy提供的json export导出文件
+    # export json file by scrapy
     def __init__(self):
         self.file = open('articleExport.json', 'wb')
         self.exporter = JsonItemExporter(self.file, encoding='utf-8', ensure_ascii=False)
@@ -51,8 +51,7 @@ class JsonExporterPipeline(object):
 
 
 class MysqlPipeline(object):
-    # 普通方式将数据插入MySQL，在爬虫量大时容易阻塞
-
+    # normal way to insert, easy to get stuck when dealing with a lot of data
     def __init__(self):
         self.connect = MySQLdb.connect('localhost', 'root', 'root', 'article_spider', charset='utf8', use_unicode=True)
         self.cursor = self.connect.cursor()
@@ -65,8 +64,7 @@ class MysqlPipeline(object):
 
 
 class MysqlTwistedPipeline(object):
-    # 使用twisted实现数据的异步插入
-
+    # insert data to mysql asynchronously based on twisted
     def __init__(self, dbpool):
         self.dbpool = dbpool
 
@@ -91,13 +89,12 @@ class MysqlTwistedPipeline(object):
         return item
 
     def do_insert(self, cursor, item):
-        # 执行具体的插入逻辑
-        # 根据不同的item，构建不同的sql语句，插入到mysql中
+        # details of insert data, build different sql code based on different item
         insert_sql, params = item.get_insert_sql()
         cursor.execute(insert_sql, params)
 
     def handle_error(self, failure, item, spider):
-        # 处理异步插入的异常和错误
+        # handle errors
         print(failure)
 
 

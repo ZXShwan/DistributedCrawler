@@ -10,8 +10,9 @@ import datetime
 import scrapy
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import MapCompose, TakeFirst, Join
-from ArticleSpider.utils.common import extract_nums
-from ArticleSpider.settings import SQL_DATE_FORMAT, SQL_DATETIME_FORMAT
+from utils.common import extract_nums
+from settings import SQL_DATE_FORMAT, SQL_DATETIME_FORMAT
+from w3lib.html import remove_tags
 
 
 class ArticlespiderItem(scrapy.Item):
@@ -75,9 +76,11 @@ class JobBoleArticleItem(scrapy.Item):
                                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         ON DUPLICATE KEY UPDATE praise_nums=VALUES(praise_nums), fav_nums=VALUES(fav_nums),
                         comment_nums=VALUES(comment_nums), content=VALUES(content)"""
-        params = (self['title'], self['create_date'], self['url'], self['url_obj_id'], self['front_img_url'],
-                  self['front_img_path'], self['praise_nums'], self['fav_nums'],
-                  self['comment_nums'], self['content'], self['tags'])
+        params = (
+            self['title'], self['create_date'], self['url'], self['url_obj_id'], self['front_img_url'],
+            self['front_img_path'], self['praise_nums'], self['fav_nums'],
+            self['comment_nums'], self['content'], self['tags']
+        )
         return insert_sql, params
 
 
@@ -95,11 +98,13 @@ class ZhihuQuestionItem(scrapy.Item):
     crawl_update_time = scrapy.Field()
 
     def get_insert_sql(self):
-        insert_sql = """insert into zhihu_question(zhihu_id, topics, url, title, content, answer_num, comments_num,
-                            watch_user_num, click_num, crawl_time)
-                          VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                        ON DUPLICATE KEY UPDATE content=VALUES(content), answer_num=VALUES(answer_num),
-                        comments_num=VALUES(comments_num), watch_user_num=VALUES(watch_user_num), click_num=VALUES(click_num)"""
+        insert_sql = """
+            insert into zhihu_question(zhihu_id, topics, url, title, content, answer_num, comments_num,
+              watch_user_num, click_num, crawl_time)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE content=VALUES(content), answer_num=VALUES(answer_num),
+              comments_num=VALUES(comments_num), watch_user_num=VALUES(watch_user_num), click_num=VALUES(click_num)
+        """
         zhuhu_id = self["zhihu_id"][0]
         topics = ",".join(self["topics"])
         url = "".join(self["url"])
@@ -114,7 +119,9 @@ class ZhihuQuestionItem(scrapy.Item):
             watch_user_num = int(self["watch_user_num"][0])
             click_num = 0
         crawl_time = datetime.datetime.now().strftime(SQL_DATETIME_FORMAT)
-        params = (zhuhu_id, topics, url, title, content, answer_num, comments_num, watch_user_num, click_num, crawl_time)
+        params = (
+            zhuhu_id, topics, url, title, content, answer_num, comments_num, watch_user_num, click_num, crawl_time
+        )
 
         return insert_sql, params
 
@@ -133,15 +140,71 @@ class ZhihuAnswerItem(scrapy.Item):
     crawl_update_time = scrapy.Field()
 
     def get_insert_sql(self):
-        insert_sql = """insert into zhihu_answer(zhihu_id, url, question_id, author_id, content, praise_num,
-                            comments_num, create_time, update_time, crawl_time) 
-                          VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                        ON DUPLICATE KEY UPDATE content=VALUES(content), comments_num=VALUES(comments_num),
-                        praise_num=VALUES(praise_num), update_time=VALUES(update_time)"""
+        insert_sql = """
+            insert into zhihu_answer(zhihu_id, url, question_id, author_id, content, praise_num,
+              comments_num, create_time, update_time, crawl_time) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE content=VALUES(content), comments_num=VALUES(comments_num),
+              praise_num=VALUES(praise_num), update_time=VALUES(update_time)
+        """
         create_time = datetime.datetime.fromtimestamp(self["create_time"]).strftime(SQL_DATETIME_FORMAT)
         update_time = datetime.datetime.fromtimestamp(self["update_time"]).strftime(SQL_DATETIME_FORMAT)
-        params = (self["zhihu_id"], self["url"], self["question_id"], self["author_id"], self["content"],
-                  self["praise_num"], self["comments_num"], create_time, update_time,
-                  self["crawl_time"].strftime(SQL_DATETIME_FORMAT))
+        params = (
+            self["zhihu_id"], self["url"], self["question_id"], self["author_id"], self["content"],
+            self["praise_num"], self["comments_num"], create_time, update_time,
+            self["crawl_time"].strftime(SQL_DATETIME_FORMAT)
+        )
 
+        return insert_sql, params
+
+
+def remove_slash(value):
+    return value.replace("/", "")
+
+
+def get_pub_time(value):
+    return str(value).split()[0]
+
+
+def handle_jobaddr(value):
+    addr_list = str(value).split("\n")
+    addr_list = [addr.strip() for addr in addr_list if addr.strip() != "查看地图"]
+    return "".join(addr_list)
+
+
+class LagouJobItemLoader(ItemLoader):
+    default_output_processor = TakeFirst()
+
+
+class LagouJobItem(scrapy.Item):
+    url = scrapy.Field()
+    url_obj_id = scrapy.Field()
+    title = scrapy.Field()
+    salary = scrapy.Field()
+    job_city = scrapy.Field(input_processor=MapCompose(remove_slash))
+    work_years = scrapy.Field(input_processor=MapCompose(remove_slash))
+    degree = scrapy.Field(input_processor=MapCompose(remove_slash))
+    job_type = scrapy.Field()
+    publish_time = scrapy.Field(input_processor=MapCompose(get_pub_time))
+    tags = scrapy.Field(input_processor=Join(","))
+    job_advantage = scrapy.Field()
+    job_desc = scrapy.Field()
+    job_addr = scrapy.Field(input_processor=MapCompose(remove_tags, handle_jobaddr))
+    company_url = scrapy.Field()
+    company_name = scrapy.Field()
+    crawl_time = scrapy.Field()
+
+    def get_insert_sql(self):
+        insert_sql = """
+            insert into lagou_job(url, url_obj_id, title, salary, job_city, work_years, degree, job_type, publish_time,
+              tags, job_advantage, job_desc, job_addr, company_url, company_name, crawl_time)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE salary=VALUES(salary), job_desc=VALUES(job_desc),
+              work_years=VALUES(work_years), crawl_time=VALUES(crawl_time)
+        """
+        params = (
+            self["url"], self["url_obj_id"], self["title"], self["salary"], self["job_city"], self["work_years"],
+            self["degree"], self["job_type"], self["publish_time"], self["tags"], self["job_advantage"],
+            self["job_desc"], self["job_addr"], self["company_url"], self["company_name"], self["crawl_time"].strftime(SQL_DATETIME_FORMAT)
+        )
         return insert_sql, params

@@ -6,7 +6,7 @@ import time
 import os.path
 import datetime
 from scrapy.loader import ItemLoader
-from ArticleSpider.items import ZhihuQuestionItem, ZhihuAnswerItem
+from items import ZhihuQuestionItem, ZhihuAnswerItem
 try:
     from urllib import parse
 except:
