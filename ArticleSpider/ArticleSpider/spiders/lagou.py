@@ -14,7 +14,8 @@ class LagouSpider(CrawlSpider):
     custom_settings = {
         "COOKIES_ENABLED": False,
         "DOWNLOAD_DELAY": 1,
-        'DEFAULT_REQUEST_HEADERS': {
+        "JOBDIR": "spider_job_info/lagou",
+        "DEFAULT_REQUEST_HEADERS": {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'zh-CN,zh;q=0.8',

@@ -42,6 +42,11 @@ if __name__ == '__main__':
     # selector = Selector(text=browser.page_source)
     # print(selector.css(".tm-price::text").extract_first())
 
+    # python virtual display
+    # from pyvirtualdisplay import Display
+    # display = Display(visible=0, size=(800, 600))
+    # display.start()
+
     # 设置chromedriver不加载图片
     chrome_options = webdriver.ChromeOptions()
     chrome_prefs = {"profile.managed_default_content_settings.images": 2}

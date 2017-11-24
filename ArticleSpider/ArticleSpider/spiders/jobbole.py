@@ -16,6 +16,10 @@ class JobboleSpider(scrapy.Spider):
     allowed_domains = ['blog.jobbole.com']
     start_urls = ['http://blog.jobbole.com/all-posts/']
 
+    custom_settings = {
+        "JOBDIR": "spider_job_info/jobbole"
+    }
+
     def __init__(self):
         self.browser = webdriver.Chrome(executable_path=chrome_exe_path)
         super(JobboleSpider, self).__init__()

@@ -34,7 +34,8 @@ class ZhihuSpider(scrapy.Spider):
 
     # enable cookies for zhihu spider
     custom_settings = {
-        "COOKIES_ENABLED": True
+        "COOKIES_ENABLED": True,
+        "JOBDIR": "spider_job_info/zhihu"
     }
 
     def parse(self, response):
