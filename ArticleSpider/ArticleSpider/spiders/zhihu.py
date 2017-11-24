@@ -32,6 +32,11 @@ class ZhihuSpider(scrapy.Spider):
         "authorization": "oauth c3cef7c66a1843f8b3a9e6a1e3160e20"
     }
 
+    # enable cookies for zhihu spider
+    custom_settings = {
+        "COOKIES_ENABLED": True
+    }
+
     def parse(self, response):
         """
         Get all urls of html page and continue crawling based on these urls
