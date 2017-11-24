@@ -20,19 +20,30 @@ class JobboleSpider(scrapy.Spider):
         "JOBDIR": "spider_job_info/jobbole"
     }
 
-    def __init__(self):
-        self.browser = webdriver.Chrome(executable_path=chrome_exe_path)
-        super(JobboleSpider, self).__init__()
-        dispatcher.connect(self.spider_closed, signals.spider_closed)
+    # def __init__(self):
+    #     super(JobboleSpider, self).__init__()
+    #     self.browser = webdriver.Chrome(executable_path=chrome_exe_path)
+    #     dispatcher.connect(self.spider_closed, signals.spider_closed)
+    #
+    # def spider_closed(self, spider):
+    #     """
+    #     quit chrome when spider closed
+    #     :param spider:
+    #     :return:
+    #     """
+    #     print("spider closed")
+    #     self.browser.quit()
 
-    def spider_closed(self, spider):
-        """
-        quit chrome when spider closed
-        :param spider:
-        :return:
-        """
-        print("spider closed")
-        self.browser.quit()
+    # 收集伯乐在线所有404的url以及404页面数
+    handle_httpstatus_list = [404]
+
+    def __init__(self, **kwargs):
+        super(JobboleSpider, self).__init__()
+        self.fail_urls = []
+        dispatcher.connect(self.handle_spider_closed, signals.spider_closed)
+
+    def handle_spider_closed(self, spider, reason):
+        self.crawler.stats.set_value("failed_urls", ",".join(self.fail_urls))
 
     def parse(self, response):
         """
@@ -41,6 +52,9 @@ class JobboleSpider(scrapy.Spider):
         :param response:
         :return:
         """
+        if response.status == 404:
+            self.fail_urls.append(response.url)
+            self.crawler.stats.inc_value("failed_url")
 
         # 1. 获取文章列表页中文章的url，并交给scrapy下载后解析
         post_nodes = response.css("#archive div.floated-thumb .post-thumb a")
