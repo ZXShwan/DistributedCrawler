@@ -6,6 +6,7 @@
 # http://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+from scrapy.http import HtmlResponse
 from fake_useragent import UserAgent
 from tools.crawl_xici_ip import RandomIP
 
@@ -85,3 +86,14 @@ class RandomProxyMiddleware(object):
     def process_request(self, request, spider):
         random_ip = RandomIP()
         request.meta["proxy"] = random_ip.get_random_ip()
+
+
+class DynamicPageMiddleware(object):
+    """
+    get dynamic page using chrome
+    """
+    def process_request(self, request, spider):
+        if spider.name == "jobbole":
+            spider.browser.get(request.url)
+            return HtmlResponse(url=spider.browser.current_url, body=spider.browser.page_source,
+                                encoding="utf-8", request=request)
