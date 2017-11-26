@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import os
 import sys
+import os
 
-# Scrapy settings for ArticleSpider project
+# Scrapy settings for ScrapyRedis project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -11,14 +11,14 @@ import sys
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'ArticleSpider'
+BOT_NAME = 'ScrapyRedis'
 
-SPIDER_MODULES = ['ArticleSpider.spiders']
-NEWSPIDER_MODULE = 'ArticleSpider.spiders'
+SPIDER_MODULES = ['ScrapyRedis.spiders']
+NEWSPIDER_MODULE = 'ScrapyRedis.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'ArticleSpider (+http://www.yourdomain.com)'
+#USER_AGENT = 'ScrapyRedis (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -26,16 +26,22 @@ ROBOTSTXT_OBEY = False
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 
+SCHEDULER = "scrapy_redis.scheduler.Scheduler"
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+ITEM_PIPELINES = {
+    'scrapy_redis.pipelines.RedisPipeline': 300
+}
+
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 1
+#DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = False
+#COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -49,17 +55,14 @@ COOKIES_ENABLED = False
 # Enable or disable spider middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'ArticleSpider.middlewares.ArticlespiderSpiderMiddleware': 543,
+#    'ScrapyRedis.middlewares.ScrapyredisSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
-DOWNLOADER_MIDDLEWARES = {
-    # 'ArticleSpider.middlewares.DynamicPageMiddleware': 543,
-    'ArticleSpider.middlewares.RandomUserAgentMiddleware': 1,
-   # 'ArticleSpider.middlewares.RandomProxyMiddleware': 544,
-   #  'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
-}
+#DOWNLOADER_MIDDLEWARES = {
+#    'ScrapyRedis.middlewares.MyCustomDownloaderMiddleware': 543,
+#}
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
@@ -69,24 +72,13 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-   # 'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
-   # 'scrapy.pipelines.images.ImagesPipeline': 1,
-   'ArticleSpider.pipelines.ArticleImagePipeline': 1,
-   # 'ArticleSpider.pipelines.JsonWithEncodingPipline': 2,
-   # 'ArticleSpider.pipelines.JsonExporterPipeline': 2,
-   'ArticleSpider.pipelines.MysqlTwistedPipeline': 2,
-}
-IMAGES_URLS_FIELD = 'front_img_url'
-project_dir = os.path.abspath(os.path.dirname(__file__))
-IMAGES_STORE = os.path.join(project_dir, 'images')
-
-# IMAGES_MIN_HEIGHT = 100
-# IMAGES_MIN_WIDTH = 100
+#ITEM_PIPELINES = {
+#    'ScrapyRedis.pipelines.ScrapyredisPipeline': 300,
+#}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
-AUTOTHROTTLE_ENABLED = True
+#AUTOTHROTTLE_ENABLED = True
 # The initial download delay
 #AUTOTHROTTLE_START_DELAY = 5
 # The maximum download delay to be set in case of high latencies
@@ -105,19 +97,5 @@ AUTOTHROTTLE_ENABLED = True
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-MYSQL_HOST = 'localhost'
-MYSQL_DBNAME = 'article_spider'
-MYSQL_USER = 'root'
-MYSQL_PASSWORD = 'root'
-
-SQL_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-SQL_DATE_FORMAT = "%Y-%m-%d"
-
 BASE_DIR = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-print(BASE_DIR)
-sys.path.insert(0, os.path.join(BASE_DIR, 'ArticleSpider'))
-
-USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"
-RANDOM_USER_AGENT_TYPE = "random"
-
-CHROME_EXE_PATH = os.path.join(BASE_DIR, 'chromedriver')
+sys.path.insert(0, os.path.join(BASE_DIR, 'ScrapyRedis'))

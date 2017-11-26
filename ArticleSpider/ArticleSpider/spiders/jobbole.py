@@ -6,7 +6,7 @@ from items import JobBoleArticleItem, ArticleItemLoader
 from utils.common import get_md5
 from scrapy.http import Request
 from selenium import webdriver
-from tools.selenium_spider import chrome_exe_path
+from tools.selenium_spider import CHROME_EXE_PATH
 from scrapy.xlib.pydispatch import dispatcher
 from scrapy import signals
 
@@ -22,7 +22,7 @@ class JobboleSpider(scrapy.Spider):
 
     # def __init__(self):
     #     super(JobboleSpider, self).__init__()
-    #     self.browser = webdriver.Chrome(executable_path=chrome_exe_path)
+    #     self.browser = webdriver.Chrome(executable_path=CHROME_EXE_PATH)
     #     dispatcher.connect(self.spider_closed, signals.spider_closed)
     #
     # def spider_closed(self, spider):

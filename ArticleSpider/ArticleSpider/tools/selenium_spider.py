@@ -4,12 +4,10 @@ __date__ = '11/24/17 13:26'
 
 from scrapy.selector import Selector
 from selenium import webdriver
-from settings import BASE_DIR
-import os
+from settings import CHROME_EXE_PATH
 import time
 
-chrome_exe_path = os.path.join(BASE_DIR, 'chromedriver')
-# browser = webdriver.Chrome(executable_path=chrome_exe_path)
+# browser = webdriver.Chrome(executable_path=CHROME_EXE_PATH)
 
 zhihu_account = ""
 zhihu_passwd = ""
@@ -51,7 +49,7 @@ if __name__ == '__main__':
     chrome_options = webdriver.ChromeOptions()
     chrome_prefs = {"profile.managed_default_content_settings.images": 2}
     chrome_options.add_experimental_option("prefs", chrome_prefs)
-    browser = webdriver.Chrome(executable_path=chrome_exe_path, chrome_options=chrome_options)
+    browser = webdriver.Chrome(executable_path=CHROME_EXE_PATH, chrome_options=chrome_options)
     browser.get("https://www.taobao.com")
 
     # browser.quit()
