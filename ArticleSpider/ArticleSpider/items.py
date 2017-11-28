@@ -13,6 +13,7 @@ from scrapy.loader.processors import MapCompose, TakeFirst, Join
 from utils.common import extract_nums
 from settings import SQL_DATE_FORMAT, SQL_DATETIME_FORMAT
 from w3lib.html import remove_tags
+from models.es_types import ArticleType
 
 
 class ArticlespiderItem(scrapy.Item):
@@ -83,6 +84,25 @@ class JobBoleArticleItem(scrapy.Item):
         )
         return insert_sql, params
 
+    def save_to_es(self):
+        article = ArticleType()
+
+        article.url = self['url']
+        article.meta.id = self['url_obj_id']
+        article.front_img_url = self['front_img_url']
+        if 'front_img_path' in self:
+            article.front_img_path = self['front_img_path']
+        article.title = self['title']
+        article.create_date = self['create_date']
+        article.praise_nums = self['praise_nums']
+        article.fav_nums = self['fav_nums']
+        article.comment_nums = self['comment_nums']
+        article.content = remove_tags(self['content'])
+        article.tags = self['tags']
+
+        article.save()
+        return
+
 
 class ZhihuQuestionItem(scrapy.Item):
     zhihu_id = scrapy.Field()
@@ -125,6 +145,9 @@ class ZhihuQuestionItem(scrapy.Item):
 
         return insert_sql, params
 
+    def save_to_es(self):
+        pass
+
 
 class ZhihuAnswerItem(scrapy.Item):
     zhihu_id = scrapy.Field()
@@ -156,6 +179,9 @@ class ZhihuAnswerItem(scrapy.Item):
         )
 
         return insert_sql, params
+
+    def save_to_es(self):
+        pass
 
 
 def remove_slash(value):
@@ -208,3 +234,6 @@ class LagouJobItem(scrapy.Item):
             self["job_desc"], self["job_addr"], self["company_url"], self["company_name"], self["crawl_time"].strftime(SQL_DATETIME_FORMAT)
         )
         return insert_sql, params
+
+    def save_to_es(self):
+        pass

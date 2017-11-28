@@ -1,2 +1,2 @@
-# A Distributed Crawler Based on Scrapy
-scrapy + xpath + elastic search
+# A Distributed Crawler Based on Scrapy-Redis
+scrapy + redis + elastic search

@@ -106,3 +106,12 @@ class ArticleImagePipeline(ImagesPipeline):
             item['front_img_path'] = front_img_path
 
         return item
+
+
+class ElasticSearchPipline(object):
+    """
+    insert data to ES
+    """
+    def process_item(self, item, spider):
+        item.save_to_es()
+        return item
