@@ -13,7 +13,7 @@ from scrapy.loader.processors import MapCompose, TakeFirst, Join
 from utils.common import extract_nums
 from settings import SQL_DATE_FORMAT, SQL_DATETIME_FORMAT
 from w3lib.html import remove_tags
-from models.es_types import ArticleType
+from models.es_types import ArticleType, ZhihuAnswerType, ZhihuQuestionType
 
 
 class ArticlespiderItem(scrapy.Item):
@@ -146,7 +146,25 @@ class ZhihuQuestionItem(scrapy.Item):
         return insert_sql, params
 
     def save_to_es(self):
-        pass
+        question = ZhihuQuestionType()
+
+        question.zhihu_id = self['zhihu_id'][0]
+        question.topics = ",".join(self["topics"])
+        question.url = "".join(self["url"])
+        question.title = "".join(self["title"])
+        question.content = remove_tags("".join(self["content"]))
+        question.answer_num = extract_nums("".join(self["answer_num"]))
+        question.comments_num = extract_nums("".join(self["comments_num"]))
+        if len(self["watch_user_num"]) == 2:
+            question.watch_user_num = int(self["watch_user_num"][0])
+            question.click_num = int(self["watch_user_num"][1])
+        else:
+            question.watch_user_num = int(self["watch_user_num"][0])
+            question.click_num = 0
+        question.crawl_time = datetime.datetime.now().strftime(SQL_DATETIME_FORMAT)
+
+        question.save()
+        return
 
 
 class ZhihuAnswerItem(scrapy.Item):
@@ -181,7 +199,21 @@ class ZhihuAnswerItem(scrapy.Item):
         return insert_sql, params
 
     def save_to_es(self):
-        pass
+        answer = ZhihuAnswerType()
+
+        answer.zhihu_id = self['zhihu_id']
+        answer.url = self['url']
+        answer.question_id = self['question_id']
+        answer.author_id = self['author_id']
+        answer.content = remove_tags(self['content'])
+        answer.praise_num = self['praise_num']
+        answer.comments_num = self['comments_num']
+        answer.create_time = datetime.datetime.fromtimestamp(self["create_time"]).strftime(SQL_DATETIME_FORMAT)
+        answer.update_time = datetime.datetime.fromtimestamp(self["update_time"]).strftime(SQL_DATETIME_FORMAT)
+        answer.crawl_time = self["crawl_time"].strftime(SQL_DATETIME_FORMAT)
+
+        answer.save()
+        return
 
 
 def remove_slash(value):

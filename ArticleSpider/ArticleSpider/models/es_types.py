@@ -11,7 +11,7 @@ connections.create_connection(hosts=["localhost"])
 
 class ArticleType(DocType):
     """
-    bole article types
+    bole article types of es
     """
     url = Keyword()
     url_obj_id = Keyword()
@@ -30,5 +30,47 @@ class ArticleType(DocType):
         doc_type = "article"
 
 
+class ZhihuQuestionType(DocType):
+    """
+    zhihu question types of es
+    """
+    zhihu_id = Keyword()
+    topics = Text(analyzer="ik_max_word")
+    url = Keyword()
+    title = Text(analyzer="ik_max_word")
+    content = Text(analyzer="ik_max_word")
+    answer_num = Integer()
+    comments_num = Integer()
+    watch_user_num = Integer()
+    click_num = Integer()
+    crawl_time = Date()
+
+    class Meta:
+        index = "zhihu"
+        doc_type = "question"
+
+
+class ZhihuAnswerType(DocType):
+    """
+    zhihu answer types of es
+    """
+    zhihu_id = Keyword()
+    url = Keyword()
+    question_id = Keyword()
+    author_id = Keyword()
+    content = Text(analyzer="ik_max_word")
+    praise_num = Integer()
+    comments_num = Integer()
+    create_time = Date()
+    update_time = Date()
+    crawl_time = Date()
+
+    class Meta:
+        index = "zhihu"
+        doc_type = "answer"
+
+
 if __name__ == '__main__':
     ArticleType.init()
+    ZhihuQuestionType.init()
+    ZhihuAnswerType.init()
