@@ -70,7 +70,34 @@ class ZhihuAnswerType(DocType):
         doc_type = "answer"
 
 
+class LagouType(DocType):
+    """
+    lagou types of es
+    """
+    url = Keyword()
+    url_obj_id = Keyword()
+    title = Text(analyzer="ik_max_word")
+    salary = Integer()
+    job_city = Keyword()
+    work_years = Text()
+    degree = Text(analyzer="ik_max_word")
+    job_type = Text(analyzer="ik_max_word")
+    publish_time = Text()
+    tags = Text(analyzer="ik_max_word")
+    job_advantage = Text(analyzer="ik_max_word")
+    job_desc = Text(analyzer="ik_max_word")
+    job_addr = Text(analyzer="ik_max_word")
+    company_url = Keyword()
+    company_name = Keyword()
+    crawl_time = Date()
+
+    class Meta:
+        index = "lagou"
+        doc_type = "jobs"
+
+
 if __name__ == '__main__':
     ArticleType.init()
     ZhihuQuestionType.init()
     ZhihuAnswerType.init()
+    LagouType.init()

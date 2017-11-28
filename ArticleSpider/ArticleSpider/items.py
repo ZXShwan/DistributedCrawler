@@ -13,7 +13,7 @@ from scrapy.loader.processors import MapCompose, TakeFirst, Join
 from utils.common import extract_nums
 from settings import SQL_DATE_FORMAT, SQL_DATETIME_FORMAT
 from w3lib.html import remove_tags
-from models.es_types import ArticleType, ZhihuAnswerType, ZhihuQuestionType
+from models.es_types import ArticleType, ZhihuAnswerType, ZhihuQuestionType, LagouType
 
 
 class ArticlespiderItem(scrapy.Item):
@@ -268,4 +268,25 @@ class LagouJobItem(scrapy.Item):
         return insert_sql, params
 
     def save_to_es(self):
-        pass
+        lagou = LagouType()
+
+        lagou.url = self['url']
+        lagou.meta.id = self['url_obj_id']
+        lagou.title = self['title']
+        lagou.salary = self['salary']
+        lagou.job_city = remove_slash(self['job_city'])
+        lagou.work_years = remove_slash(self['work_years'])
+        lagou.degree = remove_slash(self['degree'])
+        lagou.job_type = self['job_type']
+        lagou.publish_time = get_pub_time(self['publish_time'])
+        lagou.tags = self['tags']
+        lagou.job_advantage = self['job_advantage']
+        job_desc = remove_tags(self['job_desc'])
+        lagou.job_desc = job_desc
+        lagou.job_addr = handle_jobaddr(remove_tags(self['job_addr']))
+        lagou.company_url = self['company_url']
+        lagou.company_name = self['company_name']
+        lagou.crawl_time = self["crawl_time"].strftime(SQL_DATETIME_FORMAT)
+
+        lagou.save()
+        return
